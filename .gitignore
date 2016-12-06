@@ -89,3 +89,5 @@ ENV/
 .ropeproject
 
 index/
+index2/
+template/*.png
