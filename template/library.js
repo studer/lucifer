@@ -26,16 +26,32 @@ var Links = React.createClass({
 
 var Library = React.createClass({
   getInitialState: function() {
-    return {links: []};
+    return {links: [],
+            url:''};
   },
   onChange: function(e) {
     this.search(e.target.value);
+  },
+  onChange2: function(e) {
+    this.setState({
+      url: e.target.value
+    });
   },
   search: function(search) {
     this.serverRequest = $.get('/search/'+search, function (result) {
       this.setState({
         links: result
       });
+    }.bind(this));
+  },
+  onClick: function(e) {
+    e.preventDefault();
+    this.serverRequest = $.get('/add/'+this.state.url, function (result) {
+      var res = result[0].status;
+      if (res == 'OK') {
+        this.serverRequest = $.get('/screen/'+this.state.url, function (result) {
+          alert(result[0].status);
+        }.bind(this)); }
     }.bind(this));
   },
   render: function() {
@@ -45,7 +61,7 @@ var Library = React.createClass({
           <Row><Col md={4}>
           <Input
           type="text"
-          placeholder="Enter text"
+          placeholder="Enter search"
           label="Search the Library"
           help="Search is based on the title."
           hasFeedback
@@ -53,7 +69,21 @@ var Library = React.createClass({
           groupClassName="group-class"
           labelClassName="label-class"
           onChange={this.onChange} />
-          </Col></Row>
+          </Col>
+          <Col md={4}>
+          <Input
+          type="text"
+          placeholder="Enter URL"
+          label="Add URL to the Library"
+          help="Add URL to the Library"
+          hasFeedback
+          ref="url"
+          groupClassName="group-class"
+          labelClassName="label-class"
+          onChange={this.onChange2} />
+          </Col>
+          <Col md={4}><Button bsStyle="primary" onClick={this.onClick.bind(this)} href='#'>Add</Button></Col>
+          </Row>
           <Links links={this.state.links}/>
         </Grid>
     );

@@ -3,7 +3,7 @@ from datetime import datetime
 from whoosh.index import create_in
 from whoosh.fields import Schema, TEXT, ID, DATETIME
 
-schema = Schema(title=TEXT(stored=True), url=TEXT(stored=True), date=DATETIME(stored=True), content=TEXT)
+schema = Schema(title=TEXT(stored=True), url=TEXT(stored=True), date=DATETIME(stored=True), content=TEXT, hash=ID(stored=True, unique=True))
 
 if not os.path.exists("index"):
     os.mkdir("index")
