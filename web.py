@@ -22,7 +22,7 @@ class SearchHandler(tornado.web.RequestHandler):
             qp.add_plugin(DateParserPlugin())
             query = qp.parse(search)
             results = searcher.search(query)
-            self.write(tornado.escape.json_encode([{'title':r.get('title'), 'url':r.get('url'), 'date':r.get('date').strftime("%A, %d. %B %Y %I:%M%p"), 'hash':r.get('hash', '2c7fb59f0729d8af81a7c4aa6d7086b93a47575c821bebf5386eec4d39554d3a')} for r in results[:10]]))
+            self.write(tornado.escape.json_encode([{'title':r.get('title'), 'url':r.get('url'), 'date':r.get('date').strftime("%A, %d. %B %Y %I:%M%p"), 'hash':r.get('hash', 'blank')} for r in results[:10]]))
             self.set_header('Content-Type', 'application/json')
 
 class ScreenHandler(tornado.web.RequestHandler):
