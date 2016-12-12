@@ -5,9 +5,12 @@ import tornado.web
 import tornado.ioloop
 import tornado.gen
 import tornado.escape
+from io import BytesIO
+from PIL import Image
 from bs4 import BeautifulSoup as bs4
 from datetime import datetime
 from selenium import webdriver
+from whoosh.query import Every
 from whoosh.index import create_in, open_dir
 from whoosh.fields import Schema, TEXT, ID, DATETIME
 from whoosh.qparser import MultifieldParser
@@ -34,10 +37,25 @@ class ScreenHandler(tornado.web.RequestHandler):
             driver.set_page_load_timeout(30)
             driver.get(url)
             hashx = hashlib.sha256(url.encode('utf8')).hexdigest()
-            driver.save_screenshot('template/'+hashx+'.png')
+            screenshot = Image.open(BytesIO(driver.get_screenshot_as_png()))
+            screenshot = screenshot.crop((0,0,1024,768))
+            screenshot.save('template/'+hashx+'.png', 'png')
             driver.quit()
             self.write(tornado.escape.json_encode([{'status':'OK', 'hash':hashx}]))
             self.set_header('Content-Type', 'application/json')
+        except:
+            self.write(tornado.escape.json_encode([{'status':'ERROR'}]))
+            self.set_header('Content-Type', 'application/json')
+
+class AllHandler(tornado.web.RequestHandler):
+    @tornado.gen.coroutine
+    def get(self):
+        try:
+            ix = open_dir("index")
+            with ix.searcher() as searcher:
+                results = searcher.search(Every(), limit=None)
+                self.write(tornado.escape.json_encode([{'url':r.get('url'), 'hash':r.get('hash', 'blank')} for r in results]))
+                self.set_header('Content-Type', 'application/json')
         except:
             self.write(tornado.escape.json_encode([{'status':'ERROR'}]))
             self.set_header('Content-Type', 'application/json')
@@ -80,6 +98,7 @@ def make_app():
             (r'/screen/(.*)', ScreenHandler),
             (r'/add/(.*)', AddHandler),
             (r'/fresh/', FreshHandler),
+            (r'/all/', AllHandler),
             (r'/(.*)', tornado.web.StaticFileHandler, {'path': 'template'}),
         ]
     settings = dict(
